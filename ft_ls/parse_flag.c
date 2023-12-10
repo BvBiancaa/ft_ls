@@ -3,7 +3,6 @@
 struct s_flags flags = {
     .flag_a = 0,
     .flag_f = 0,
-    .flag_g = 0,
     .flag_l = 0,
     .flag_r = 0,
     .flag_rec = 0,
@@ -16,6 +15,7 @@ struct s_flags flags = {
 void set_path(char *path)
 {
     int i;
+    DIR *a;
 
     i = 0;
     if (flags.path)
@@ -23,7 +23,22 @@ void set_path(char *path)
         while (flags.path[i])
             i++;
     }
-    flags.path[i] = path;
+    a = opendir(path);
+    if (!a)
+    {
+        if (errno == ENOENT)
+        {
+            write(2, "ls: cannot access '", 19);
+            write(2, path, ft_strlen(path));
+            write(2, "': No such file or directory\n", 29);
+            flags.paths_nbr--;
+        }
+        else
+            flags.path[i] = path;
+    }
+    else
+        flags.path[i] = path;
+    closedir(a);
 }
 
 void    display_version(void)
@@ -32,32 +47,37 @@ void    display_version(void)
     write(1, "This is free software: you are free to change and redistribute it.\n", 68);
     write(1, "There is NO WARRANTY, to the extent permitted by law.\n\n", 56);
     write(1, "Written by: bmuni.\n", 20);
+    write(1, "Curious about what this program can do? Try ./ft_ls --help.\n", 61);
+    free(flags.path);
 }
 
 void    display_help(void)
 {
     write(1, "Usage: ls [OPTION]... [FILE]...\n", 33);
     write(1, "List information about the FILEs (the current directory by default).\n", 70);
-    write(1, "Sort entries alphabetically if none of -cftuvSUX nor --sort is specified.\n", 75);
+    write(1, "Sort entries alphabetically if none of -ftrU is specified.\n", 60);
     write(1, "\n", 1);
-    write(1, "Mandatory arguments to long options are mandatory for short options too.\n", 74);
-/*     write(1, "  -a, --all                  do not ignore entries starting with .\n", 68);
-    write(1, "  -d, --directory            list directories themselves, not their contents\n", 78);
-    write(1, "  -f                         do not sort, enable -aU, disable -ls --color\n", 75);
-    write(1, "  -g                         like -l, but do not list owner\n", 62);
-    write(1, "  -l                         use a long listing format\n", 56);
-    write(1, "  -r, --reverse              reverse order while sorting\n", 59);
-    write(1, "  -R, --recursive            list subdirectories recursively\n", 63);
-    write(1, "  -t                         sort by modification time, newest first\n", 69);
-    write(1, "  -u                         with -lt: sort by, and show, access time\n", 70);
-    write(1, "                             with -l: show access time and sort by name\n", 73);
-    write(1, "                             otherwise: sort by access time\n", 62);
-    write(1, "  -U                         do not sort; list entries in directory order\n", 74);
-    write(1, "  --color[=WHEN]             colorize the output; WHEN can be 'always' (default\n", 80);
-    write(1, "                             if omitted), 'auto', or 'never'; more info below\n", 80);
-    write(1, "  --help                     display this help and exit\n", 58);
-    write(1, "  --version                  output version information and exit\n", 68);
-    write(1, "\n", 1); */
+    write(1, "Ft_ls possible arguments:\n", 27);
+    write(1, "  -a, (all)                  do not ignore entries starting with '.'.\n", 71);
+    write(1, "  -f                         do not sort, equal to -aU, disable ft_ls colors.\n", 79);
+    write(1, "  -l                         use a long listing format.\n", 57);
+    write(1, "  -r, (reverse)              reverse order while sorting.\n", 59);
+    write(1, "  -R, (recursive)            list subdirectories recursively.\n", 63);
+    write(1, "  -t                         sort by modification time, newest first.\n", 71);
+    write(1, "  -U                         do not sort; list entries in directory order.\n", 76);
+    write(1, "  --help                     display this help and exit.\n", 58);
+    write(1, "  --version                  output version information and exit.\n", 67);
+    write(1, "\n", 1);
+    write(1, "ft_ls emits color codes only when standard output is connected to a terminal.\n", 79);
+    write(1, "The LS_COLORS environment variable can change the settings.\n", 61);
+    write(1, "Use the dircolors command to set it.\n", 38);
+    write(1, "Only with -r option colors are disabled by default.\n", 53);
+    write(1, "\n", 1);
+    write(1, "Exit status:\n", 14);
+    write(1, " 0  if OK,\n", 12);
+    write(1, " 1  if minor problems (e.g., cannot access subdirectory),\n", 59);
+    write(1, " 2  if serious trouble (e.g., cannot access command-line argument).\n", 69);
+    free(flags.path);
 }
 
 void    reverse_order(char **content, int len)
@@ -107,7 +127,6 @@ void    order_by_time(char **content, int len)
         }
         i++;
     }
-    return ;
 }
 
 void    order_dir(char **content, int len)
@@ -115,22 +134,29 @@ void    order_dir(char **content, int len)
     int i;
     char    *tmp;
 
+    //i = -1;
+    //printf("LEN %d\n", len);
+    //while (++i < len - 1)
+        //printf("STR DI %d, %s\n", i, content[i]);
     i = 0;
-    if (flags.flag_big_u > 0 && flags.flag_t < flags.flag_big_u)
+    if (flags.flag_big_u > 0 && flags.flag_t < flags.flag_big_u) //to check??
         return ;
-    while (i < len - 1)
-    {
-        if (content[i + 1] && ft_strcmp_mod(content[i], content[i + 1]) > 0)
-        {
-            tmp = content[i];
-            content[i] = content[i + 1];
-            content[i + 1] = tmp;
-            i = -1;
-        }
-        i++;
-    }
     if (flags.flag_t > 0)
         order_by_time(content, len);
+    else
+    {
+        while (i < len - 1)
+        {
+            if (content[i + 1] && ft_strcmp_mod(content[i], content[i + 1]) > 0)
+            {
+                tmp = content[i];
+                content[i] = content[i + 1];
+                content[i + 1] = tmp;
+                i = -1;
+            }
+            i++;
+        }
+    }
     if (flags.flag_r > 0)
         reverse_order(content, len);
 }
@@ -192,13 +218,13 @@ void    print_dir_flags(char **content, int len, char *path, char **env)
     else if (flags.paths_nbr == 0 && flags.flag_rec > 0)
     {
         tmp = get_dir_name(path);
-        write(1, "\n.", 2);
+        write(1, ".", 1);
         write(1, tmp, ft_strlen(tmp));
         write(1, ":\n", 2);
     }
-    else if (flags.flag_rec > 0)
+    else if (flags.flag_rec > 0 || flags.paths_nbr > 0)
     {
-        write(1, "\n.", 2);
+        write(1, ".", 1);
         write(1, path, ft_strlen(path));
         write(1, ":\n", 2);
     }
@@ -206,6 +232,8 @@ void    print_dir_flags(char **content, int len, char *path, char **env)
     if (flags.flag_l > 0)
         get_total_size(path, content);
     flags.winsize = get_window_size();
+    if (!(*content) || *content == NULL)
+        return ;
     while (content[++i])
     {
         if (content[i][0] == '/')
@@ -260,6 +288,7 @@ void    read_subdir(DIR *dir, char **env, char *path)
     flags.tot_len = 0;
     flags.total_size = 0;
     file_nbr = get_files_nbr_flags(path);
+    write(1, "\n", 1);
     content = (char **)malloc(sizeof(char *) * (file_nbr + 1));
     if (!content)
         return ;
@@ -347,6 +376,7 @@ void    read_dir(DIR *dir, char **env, char *path)
         entry = readdir(dir);
         if (!entry)
             break ;
+        //printf("ENTRY %s\n", entry->d_name);
         if (entry->d_name[0] == '.' && flags.flag_a == 0 && flags.flag_f == 0)
             continue ;
         content[index] = entry->d_name;
@@ -372,12 +402,12 @@ void    attach_current_path(char *name, char **env)
 
     tmp = ft_getcwd("PWD", env);
     tmp2 = ft_strjoin(tmp, "/");
-    free(tmp);
+    //free(tmp);
     name = ft_strjoin(tmp2, name);
     free(tmp2);
 }
 
-void    parse_path(char **env)
+int    parse_path(char **env)
 {
     static int  i;
     static int  x;
@@ -385,24 +415,26 @@ void    parse_path(char **env)
 
     while (flags.path[i])
     {
-        if (flags.path[i][0] == '~')
-            flags.path[i] = ft_getenv("HOME", env);
-        if (flags.path[i][0] != '/')
-            attach_current_path(flags.path[i], env);
         fd = opendir(flags.path[i]);
         if (!fd)
         {
-            write(2, "ls: cannot access '", 19);
-            write(2, flags.path[i], ft_strlen(flags.path[i]));
-            write(2, "': No such file or directory\n", 29);
-            i++;
-            return ;
+            if (errno == EACCES)
+            {
+                write(2, "ls: cannot access '", 19);
+                write(2, flags.path[i], ft_strlen(flags.path[i]));
+                write(2, "': Permission denied\n", 22);
+                i++;
+            }
+            return 2;
         }
+        if (i > 0)
+            write(1, "\n", 1);
         i++;
-        parse_path(env);
         read_dir(fd, env, flags.path[x]);
         x++;
+        parse_path(env);
     }
+    return (0);
 }
 
 void count_paths(int ac, char **av, char **env)
@@ -438,9 +470,6 @@ int    check_flag(char c, size_t count)
         case 'f':
             flags.flag_f = count;
             break;
-        case 'g':
-            flags.flag_g = count;
-            break;
         case 'l':
             flags.flag_l = count;
             break;
@@ -463,6 +492,82 @@ int    check_flag(char c, size_t count)
             FLAG_ERROR(flags);
     }
     return (0);
+}
+
+void    order_dir_by_time()
+{
+    ssize_t seconds[flags.paths_nbr];
+    ssize_t tmp;
+    char    *temp;
+    struct stat sb;
+    size_t i;
+
+    i = 0;
+    while (i < flags.paths_nbr)
+    {
+        if (lstat(flags.path[i], &sb) == -1)
+            return ;
+        seconds[i] = sb.st_mtime;
+        i++;
+    }
+    i = 0;
+    while (i < flags.paths_nbr - 1)
+    {
+        if (seconds[i + 1] && seconds[i] < seconds[i + 1])
+        {
+            temp = flags.path[i];
+            flags.path[i] = flags.path[i + 1];
+            flags.path[i + 1] = temp;
+            tmp = seconds[i];
+            seconds[i] = seconds[i + 1];
+            seconds[i + 1] = tmp;
+            i = -1;
+        }
+        i++;
+    }
+}
+
+void    reverse_dir_order()
+{
+    size_t     i;
+    char    *tmp;
+
+    i = 0;
+    while (i < flags.paths_nbr / 2)
+    {
+        tmp = flags.path[flags.paths_nbr - i - 1];
+        flags.path[flags.paths_nbr - i - 1] = flags.path[i];
+        flags.path[i] = tmp;
+        i++;
+    }
+}
+
+void    order_dirs()
+{
+    size_t i;
+    char    *tmp;
+
+    if (flags.flag_t > 0 && flags.flag_f == 0)
+        order_dir_by_time();
+    else if (flags.flag_f == 0)
+    {
+        i = 0;
+        if (flags.flag_big_u > 0 && flags.flag_t < flags.flag_big_u)
+            return ;
+        while (i < flags.paths_nbr - 1)
+        {
+            if (flags.path[i + 1] && ft_strcmp_mod(flags.path[i], flags.path[i + 1]) > 0)
+            {
+                tmp = flags.path[i];
+                flags.path[i] = flags.path[i + 1];
+                flags.path[i + 1] = tmp;
+                i = -1;
+            }
+            i++;
+        }
+    }
+    if (flags.flag_r > 0 && flags.flag_f == 0)
+        reverse_dir_order();
 }
 
 int parse_flags(int ac, char **av, char **env)
@@ -494,14 +599,19 @@ int parse_flags(int ac, char **av, char **env)
             while (av[i][++y])
             {
                 if (check_flag(av[i][y], count))
-                    return -1;
+                    return 2;
                 count++;
             }
         }
         else
             set_path(av[i]);
     }
-    parse_path(env);
+    if (flags.paths_nbr > 0)
+    {
+        flags.path[flags.paths_nbr] = NULL;
+        order_dirs();
+    }
+    i = parse_path(env);
     free(flags.path);
-    return (0);
+    return (i);
 }

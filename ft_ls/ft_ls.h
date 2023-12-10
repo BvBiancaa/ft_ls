@@ -19,6 +19,7 @@
 #include <grp.h>
 #include <pwd.h>
 #include "Libft/libft.h"
+#include <errno.h>
 
 
 #define FLAG_ERROR(flags) \
@@ -35,7 +36,6 @@ typedef struct s_flags
 {
     size_t flag_a;
     size_t flag_f;
-    size_t flag_g;
     size_t flag_l;
     size_t flag_r;
     size_t flag_rec;
@@ -69,7 +69,7 @@ void	ft_putnbr(ssize_t n);
 void    is_subfolder(char *path, char *name, char **env);
 void    attach_current_path(char *name, char **env);
 void    read_dir(DIR *dir, char **env, char *path);
-void    parse_path(char **env);
+int    parse_path(char **env);
 int get_files_nbr_flags(char *path);
 int	ft_strcmp(char *s1, char *s2);
 void    read_subdirs(char *path, char **content, char **env);

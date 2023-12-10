@@ -259,7 +259,8 @@ void    print_file(char *sign, char *name, char **env)
         print_file_info(name);
     if (name[0] == '/')
         name = get_name(name);
-    color = parse_extention(name, sign, env);
+    if (flags.flag_f == 0)
+        color = parse_extention(name, sign, env);
     if (color != NULL)
         write(1, color, sizeof(color));
     write(1, name, ft_strlen(name));

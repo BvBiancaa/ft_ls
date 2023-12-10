@@ -65,10 +65,10 @@ int read_curr_dir(char *path, char **env)
     file_nbr = get_files_nbr(path);
     content = (char **)malloc(sizeof(char *) * (file_nbr + 1));
     if (!content)
-        return (0);
+        return (1);
     dir = opendir(path);
     if (!dir)
-        return (0);
+        return (1);
     while (index < file_nbr)
     {
         entry = readdir(dir);
@@ -84,5 +84,5 @@ int read_curr_dir(char *path, char **env)
         print_dir(content, file_nbr, path, env);
     closedir(dir);
     free(content);
-    return (1);
+    return (0);
 }
