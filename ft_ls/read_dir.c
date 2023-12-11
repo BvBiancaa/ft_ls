@@ -37,6 +37,8 @@ int get_files_nbr(char *path)
     int             nbr;
 
     dir = opendir(path);
+    if (!dir)
+        return (0);
     nbr = 0;
     while (1)
     {
@@ -65,10 +67,10 @@ int read_curr_dir(char *path, char **env)
     file_nbr = get_files_nbr(path);
     content = (char **)malloc(sizeof(char *) * (file_nbr + 1));
     if (!content)
-        return (1);
+        return (2);
     dir = opendir(path);
     if (!dir)
-        return (1);
+        return (2);
     while (index < file_nbr)
     {
         entry = readdir(dir);

@@ -23,11 +23,13 @@ int	find_color(const char *s, const char *s1)
 
 char    *parse_ls_colors(char *sign, char **env)
 {
-    char    ret[8] = {0};
+    char    ret[10] = {0};
     char    *env_color;
     int     tmp;
     int     index;
+    int     bg_check;
 
+    bg_check = 0;
     env_color = ft_getenv("LS_COLORS", env);
     if (!env_color)
         return (NULL);
@@ -38,6 +40,8 @@ char    *parse_ls_colors(char *sign, char **env)
     while (env_color[tmp] && env_color[tmp] != ':')
     {
         ret[index] = env_color[tmp];
+        if (ret[index] == ';')
+            bg_check += 1;
         index++;
         tmp++;
     }
@@ -262,7 +266,7 @@ void    print_file(char *sign, char *name, char **env)
     if (flags.flag_f == 0)
         color = parse_extention(name, sign, env);
     if (color != NULL)
-        write(1, color, sizeof(color));
+        write(1, color, ft_strlen(color));
     write(1, name, ft_strlen(name));
     write(1, ANSI_COLOR_RESET, sizeof(ANSI_COLOR_RESET) - 1);
     free(color);

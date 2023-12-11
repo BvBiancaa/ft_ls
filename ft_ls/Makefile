@@ -1,6 +1,6 @@
 NAME=ft_ls
 
-SRCS=main.c env_parse.c read_dir.c utils.c parse_flag.c window_size.c file_type.c colors.c
+SRCS=main.c env_parse.c read_dir.c utils.c parse_flag.c window_size.c file_type.c colors.c order.c directories.c read_flags.c path.c help_and_version.c subdirs.c
 
 all: $(NAME)
 
